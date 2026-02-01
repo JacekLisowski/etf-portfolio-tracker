@@ -112,17 +112,19 @@ model Exchange {
 
 // Instrument = ETF on ISIN level (one name per ISIN)
 model Instrument {
-  isin            String     @id              // IE00BK5BQT80
+  isin            String     @id              // IE00BK5BQT80 or TEMP-VWCE-XETR
   name            String                      // Canonical ETF name
   nameSource      NameSource                  // Source hierarchy: FIRDS > SIX > FALLBACK
   classification  String?                     // CFI code or similar
   nameConflict    Boolean    @default(false)  // Flag for manual inspection
+  isinTemporary   Boolean    @default(false)  // True if ISIN is TEMP-{ticker}-{MIC}
   firstSeenAt     DateTime   @default(now())
   lastSeenAt      DateTime   @updatedAt
 
   listings        Etf[]                       // One instrument, many listings
 
   @@index([nameSource])
+  @@index([isinTemporary])
 }
 
 // Etf = Listing (one instrument can have many listings on different exchanges)
