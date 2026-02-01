@@ -22,7 +22,7 @@ export async function searchEtfs(params: SearchEtfsRequest): Promise<{ etfs: Etf
     where.OR = [
       { ticker: { contains: searchTerm } },
       { isin: { contains: searchTerm } },
-      { name: { contains: search.trim(), mode: 'insensitive' } },
+      { name: { contains: search.trim() } },
     ]
   }
 
