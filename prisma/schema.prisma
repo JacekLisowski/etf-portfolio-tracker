@@ -1,0 +1,154 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// Enums
+enum Role {
+  USER
+  ADMIN
+}
+
+enum SubscriptionTier {
+  FREE
+  PREMIUM
+}
+
+// NextAuth Models
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  role          Role      @default(USER)
+  tier          SubscriptionTier @default(FREE)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  portfolio     Portfolio?
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Portfolio Models
+
+enum TransactionType {
+  BUY
+  SELL
+}
+
+model Exchange {
+  id       String @id @default(cuid())
+  mic      String @unique           // ISO 10383: XETR, XLON, XAMS
+  name     String                   // Frankfurt (Xetra), London Stock Exchange
+  country  String                   // ISO 3166: DE, GB, NL
+  currency String                   // ISO 4217: EUR, GBP, USD
+  timezone String?                  // IANA: Europe/Berlin, Europe/London
+
+  etfs     Etf[]
+
+  @@index([country])
+}
+
+model Etf {
+  id         String   @id @default(cuid())
+  isin       String                  // IE00BK5BQT80
+  exchangeId String
+  ticker     String                  // VWCE, VWRL
+  name       String                  // Vanguard FTSE All-World UCITS ETF
+  currency   String                  // EUR (waluta notowania, może różnić się od giełdy)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  exchange     Exchange      @relation(fields: [exchangeId], references: [id], onDelete: Restrict)
+  transactions Transaction[]
+
+  @@unique([isin, exchangeId])       // Ten sam ETF na danej giełdzie
+  @@unique([ticker, exchangeId])     // Ticker unikalny per giełda
+  @@index([isin])
+  @@index([ticker])
+}
+
+model Portfolio {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  name      String   @default("Moje Portfolio")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([userId])
+}
+
+model Transaction {
+  id           String          @id @default(cuid())
+  portfolioId  String
+  etfId        String
+  type         TransactionType
+  date         DateTime                 // Data transakcji
+  quantity     Float                    // Liczba jednostek
+  pricePerUnit Float                    // Cena za jednostkę w walucie transakcji
+  totalAmount  Float                    // Całkowita wartość (quantity * price + fees)
+  currency     String                   // Waluta transakcji (USD, EUR, PLN)
+  fees         Float           @default(0)  // Prowizje
+  exchangeRate Float?                   // Kurs NBP (do PLN) - opcjonalny, na przyszłość
+  notes        String?                  // Notatki użytkownika
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  portfolio Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  etf       Etf       @relation(fields: [etfId], references: [id], onDelete: Restrict)
+
+  @@index([portfolioId])
+  @@index([etfId])
+  @@index([date])
+  @@index([type])
+}
