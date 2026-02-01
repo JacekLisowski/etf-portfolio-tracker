@@ -78,22 +78,51 @@ See [`docs/architecture.md`](../docs/architecture.md) for detailed architecture 
 - PRD: `../_bmad-output/planning-artifacts/prd.md`
 - Architecture: `../_bmad-output/planning-artifacts/architecture.md`
 
+## Database Model
+
+### Core Concept: Instrument vs Listing
+
+The application distinguishes between **ETF instruments** (identified by ISIN) and **listings** (trading venues):
+
+- **Instrument** = ETF at ISIN level (one canonical name per ISIN)
+- **Listing** = ETF traded on a specific exchange (ISIN + MIC)
+
+### Data Source Hierarchy
+
+ETF names follow a priority hierarchy:
+1. **ESMA FIRDS** (EEA regulatory data) - Priority 1
+2. **FCA FIRDS** (UK regulatory data) - Priority 1
+3. **SIX Reference Data** (Switzerland) - Priority 2
+4. **FALLBACK** (Twelve Data API) - Priority 3
+
+### Key Models
+
+- `Instrument` - ETF metadata (ISIN, name, name_source)
+- `Etf` (Listing) - Trading venue (ISIN, MIC, ticker, currency, status)
+- `Exchange` - Trading venues (MIC, name, country)
+- `Portfolio` - User portfolio
+- `Transaction` - Buy/sell transactions
+
+See `prisma/schema.prisma` for details.
+
 ## Current Status
 
-**Phase:** MVP Implementation (Story 0.1-0.2 Complete)
+**Phase:** Backend MVP Complete
 
 - [x] Next.js 16.x with Pages Router
 - [x] Chakra UI v2 with dark mode
 - [x] Prisma 7.x ORM configured
 - [x] Vitest testing framework
 - [x] ESLint + Prettier
-- [x] Project structure created
-- [ ] NextAuth.js + Magic Link
+- [x] NextAuth.js + Magic Link authentication
+- [x] Database models (Instrument, Listing, Exchange, Portfolio, Transaction)
+- [x] API endpoints (transactions, portfolio, exchanges, etfs)
+- [x] Validation & error handling
+- [ ] ETF sync service (Twelve Data integration)
 - [ ] TanStack Query setup
-- [ ] Database models (User, Position, Transaction)
-- [ ] FIFO engine
-- [ ] API endpoints
-- [ ] UI components
+- [ ] UI components (forms, tables, charts)
+- [ ] FIFO calculation engine
+- [ ] PIT-38 tax reporting
 
 ## License
 

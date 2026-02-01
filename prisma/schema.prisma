@@ -83,6 +83,20 @@ enum TransactionType {
   SELL
 }
 
+enum NameSource {
+  ESMA_FIRDS
+  FCA_FIRDS
+  SIX
+  FALLBACK
+}
+
+enum ListingStatus {
+  ACTIVE
+  TERMINATED
+  CANCELLED
+  SUSPENDED
+}
+
 model Exchange {
   id       String @id @default(cuid())
   mic      String @unique           // ISO 10383: XETR, XLON, XAMS
@@ -96,23 +110,43 @@ model Exchange {
   @@index([country])
 }
 
+// Instrument = ETF on ISIN level (one name per ISIN)
+model Instrument {
+  isin            String     @id              // IE00BK5BQT80
+  name            String                      // Canonical ETF name
+  nameSource      NameSource                  // Source hierarchy: FIRDS > SIX > FALLBACK
+  classification  String?                     // CFI code or similar
+  nameConflict    Boolean    @default(false)  // Flag for manual inspection
+  firstSeenAt     DateTime   @default(now())
+  lastSeenAt      DateTime   @updatedAt
+
+  listings        Etf[]                       // One instrument, many listings
+
+  @@index([nameSource])
+}
+
+// Etf = Listing (one instrument can have many listings on different exchanges)
 model Etf {
-  id         String   @id @default(cuid())
-  isin       String                  // IE00BK5BQT80
-  exchangeId String
-  ticker     String                  // VWCE, VWRL
-  name       String                  // Vanguard FTSE All-World UCITS ETF
-  currency   String                  // EUR (waluta notowania, może różnić się od giełdy)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id              String        @id @default(cuid())
+  isin            String                           // IE00BK5BQT80 - links to Instrument
+  exchangeId      String
+  ticker          String?                          // VWCE, VWRL (can be null)
+  tradingCurrency String        @default("USD")    // EUR, USD (currency of this listing)
+  status          ListingStatus @default(ACTIVE)   // ACTIVE, TERMINATED, CANCELLED, SUSPENDED
+  sourceSystem    String        @default("FALLBACK") // ESMA_FIRDS, FCA_FIRDS, SIX, FALLBACK
+  firstSeenAt     DateTime      @default(now())
+  lastSeenAt      DateTime      @default(now()) @updatedAt
 
-  exchange     Exchange      @relation(fields: [exchangeId], references: [id], onDelete: Restrict)
-  transactions Transaction[]
+  // Relations
+  instrument      Instrument    @relation(fields: [isin], references: [isin], onDelete: Restrict)
+  exchange        Exchange      @relation(fields: [exchangeId], references: [id], onDelete: Restrict)
+  transactions    Transaction[]
 
-  @@unique([isin, exchangeId])       // Ten sam ETF na danej giełdzie
-  @@unique([ticker, exchangeId])     // Ticker unikalny per giełda
+  @@unique([isin, exchangeId])       // One listing per (ISIN, Exchange)
   @@index([isin])
   @@index([ticker])
+  @@index([status])
+  @@index([sourceSystem])
 }
 
 model Portfolio {
