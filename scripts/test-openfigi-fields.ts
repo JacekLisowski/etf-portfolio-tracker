@@ -15,7 +15,7 @@ async function lookupFIGI(requests: any[]): Promise<any[]> {
     throw new Error(`HTTP ${response.status}: ${response.statusText}`)
   }
 
-  return await response.json()
+  return (await response.json()) as any[]
 }
 
 async function main() {

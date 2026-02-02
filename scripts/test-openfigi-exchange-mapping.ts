@@ -35,7 +35,7 @@ async function lookupFIGI(requests: OpenFIGIRequest[]): Promise<OpenFIGIResponse
     throw new Error(`HTTP ${response.status}: ${response.statusText}`)
   }
 
-  return await response.json()
+  return (await response.json()) as OpenFIGIResponse[]
 }
 
 async function main() {

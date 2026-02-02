@@ -16,14 +16,8 @@ export function validateTransactionData(data: CreateTransactionRequest): void {
     if (!data.etf.exchangeId || data.etf.exchangeId.trim() === '') {
       errors['etf.exchangeId'] = 'Giełda jest wymagana'
     }
-    if (!data.etf.ticker || data.etf.ticker.trim() === '') {
-      errors['etf.ticker'] = 'Ticker jest wymagany'
-    }
-    if (!data.etf.name || data.etf.name.trim() === '') {
-      errors['etf.name'] = 'Nazwa ETF jest wymagana'
-    }
-    if (!data.etf.currency || data.etf.currency.trim() === '') {
-      errors['etf.currency'] = 'Waluta jest wymagana'
+    if (!data.etf.tradingCurrency || data.etf.tradingCurrency.trim() === '') {
+      errors['etf.tradingCurrency'] = 'Waluta transakcyjna jest wymagana'
     }
   }
 

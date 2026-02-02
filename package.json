@@ -14,10 +14,12 @@
     "test:ui": "vitest --ui"
   },
   "dependencies": {
+    "@chakra-ui/icons": "^2.2.4",
     "@chakra-ui/next-js": "^2.4.2",
     "@chakra-ui/react": "^2.10.9",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@hookform/resolvers": "^5.2.2",
     "@libsql/client": "^0.17.0",
     "@next-auth/prisma-adapter": "^1.0.7",
     "@prisma/adapter-libsql": "^7.3.0",
@@ -28,7 +30,8 @@
     "nodemailer": "^7.0.13",
     "prisma": "^7.3.0",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "react-hook-form": "^7.71.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
