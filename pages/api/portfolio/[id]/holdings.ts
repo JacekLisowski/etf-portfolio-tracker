@@ -114,7 +114,7 @@ export default async function handler(
           totalCost: h.totalCost,
           gainLoss,
           gainLossPercent,
-          currency: h.etf.currency || 'EUR',
+          currency: h.etf.tradingCurrency || 'EUR',
           lastUpdate: new Date(),
           allocation: 0, // Will be calculated after totals
         }

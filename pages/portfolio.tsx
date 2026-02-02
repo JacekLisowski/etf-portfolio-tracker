@@ -56,10 +56,16 @@ export default function PortfolioPage() {
         throw new Error('Failed to fetch portfolio')
       }
       const portfolioData = await portfolioResponse.json()
-      setPortfolioId(portfolioData.id)
+      const pId = portfolioData.portfolio?.id
+
+      if (!pId) {
+        throw new Error('Portfolio ID not found')
+      }
+
+      setPortfolioId(pId)
 
       // Fetch holdings
-      const holdingsResponse = await fetch(`/api/portfolio/${portfolioData.id}/holdings`)
+      const holdingsResponse = await fetch(`/api/portfolio/${pId}/holdings`)
       if (!holdingsResponse.ok) {
         throw new Error('Failed to fetch holdings')
       }
@@ -68,11 +74,11 @@ export default function PortfolioPage() {
       // Transform holdings data
       const transformedHoldings: Holding[] = holdingsData.holdings.map((h: any) => ({
         id: h.id,
-        symbol: h.instrument.ticker,
+        symbol: h.etf?.ticker || h.isin,
         name: h.instrument.name,
         isin: h.instrument.isin,
         isinTemporary: h.instrument.isinTemporary,
-        exchange: h.listing.exchangeMic,
+        exchange: h.etf?.exchangeId || '',
         quantity: h.quantity,
         avgPrice: h.avgPrice,
         currentPrice: h.currentPrice || h.avgPrice,

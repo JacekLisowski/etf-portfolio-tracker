@@ -102,15 +102,13 @@ export function AddTransactionModal({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          portfolioId,
+          etfId: data.etf?.id,
           type: data.type,
           date: new Date(data.date).toISOString(),
-          instrumentId: data.etf?.id,
-          exchangeMic: data.etf?.exchange,
           quantity: data.quantity,
-          price: data.price,
+          pricePerUnit: data.price,
           currency: data.currency,
-          commission: data.commission || 0,
+          fees: data.commission || 0,
           notes: data.notes || '',
         }),
       })

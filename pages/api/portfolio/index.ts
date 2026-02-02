@@ -1,6 +1,6 @@
 import type { NextApiHandler } from 'next'
 import { withAuth } from '@/lib/middleware/withAuth'
-import { getUserPortfolio } from '@/lib/services/portfolio'
+import { getUserPortfolio, getOrCreatePortfolio } from '@/lib/services/portfolio'
 import { AppError } from '@/lib/errors'
 import type { PortfolioResponse } from '@/types/portfolio'
 
@@ -9,14 +9,11 @@ const handler: NextApiHandler = async (req, res) => {
 
   if (req.method === 'GET') {
     try {
-      const portfolio = await getUserPortfolio(user.id)
+      // Use getOrCreatePortfolio to auto-create if doesn't exist
+      const portfolio = await getOrCreatePortfolio(user.id)
 
-      if (!portfolio) {
-        return res.status(200).json({
-          portfolio: null,
-          transactions: [],
-        })
-      }
+      // Fetch transactions separately
+      const fullPortfolio = await getUserPortfolio(user.id)
 
       const response: PortfolioResponse = {
         portfolio: {
@@ -26,7 +23,7 @@ const handler: NextApiHandler = async (req, res) => {
           createdAt: portfolio.createdAt,
           updatedAt: portfolio.updatedAt,
         },
-        transactions: portfolio.transactions || [],
+        transactions: fullPortfolio?.transactions || [],
       }
 
       return res.status(200).json(response)
