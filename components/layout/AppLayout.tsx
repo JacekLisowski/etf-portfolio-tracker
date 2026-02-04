@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import { ReactNode, Component, ErrorInfo } from 'react'
 import {
   Box,
   Container,
@@ -14,6 +14,8 @@ import {
   MenuDivider,
   useColorMode,
   IconButton,
+  VStack,
+  Text,
 } from '@chakra-ui/react'
 import { MoonIcon, SunIcon } from '@chakra-ui/icons'
 import Link from 'next/link'
@@ -21,6 +23,60 @@ import { useRouter } from 'next/router'
 import { signOut } from 'next-auth/react'
 import { useAuth } from '@/hooks/useAuth'
 import { LABELS } from '@/config/labels'
+
+// ErrorBoundary component for catching React errors
+interface ErrorBoundaryProps {
+  children: ReactNode
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean
+  error: Error | null
+}
+
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props)
+    this.state = { hasError: false, error: null }
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('ErrorBoundary caught an error:', error, errorInfo)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Container maxW="container.md" py={20}>
+          <VStack spacing={4} textAlign="center">
+            <Heading size="lg">Coś poszło nie tak</Heading>
+            <Text color="gray.500">
+              Przepraszamy, wystąpił nieoczekiwany błąd.
+            </Text>
+            <Text fontSize="sm" color="gray.400">
+              {this.state.error?.message}
+            </Text>
+            <Button
+              colorScheme="brand"
+              onClick={() => {
+                this.setState({ hasError: false, error: null })
+                window.location.reload()
+              }}
+            >
+              Spróbuj ponownie
+            </Button>
+          </VStack>
+        </Container>
+      )
+    }
+
+    return this.props.children
+  }
+}
 
 interface AppLayoutProps {
   children: ReactNode
@@ -114,7 +170,10 @@ export function AppLayout({ children }: AppLayoutProps) {
                       </Link>
                     )}
                     <MenuDivider />
-                    <MenuItem onClick={() => signOut()} color="red.500">
+                    <MenuItem
+                      onClick={() => signOut({ callbackUrl: '/auth/signin?logout=true' })}
+                      color="red.500"
+                    >
                       {LABELS.nav.logout}
                     </MenuItem>
                   </MenuList>
@@ -129,10 +188,12 @@ export function AppLayout({ children }: AppLayoutProps) {
         </Container>
       </Box>
 
-      {/* Main Content */}
-      <Container maxW="container.xl" py={8}>
-        {children}
-      </Container>
+      {/* Main Content with ErrorBoundary */}
+      <ErrorBoundary>
+        <Container maxW="container.xl" py={8}>
+          {children}
+        </Container>
+      </ErrorBoundary>
     </Box>
   )
 }

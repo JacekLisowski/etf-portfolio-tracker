@@ -1,5 +1,6 @@
 import { signIn } from 'next-auth/react'
 import { useState } from 'react'
+import { useRouter } from 'next/router'
 import {
   Box,
   Button,
@@ -19,12 +20,18 @@ import Head from 'next/head'
 import Link from 'next/link'
 
 export default function SignIn() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const bgColor = useColorModeValue('gray.50', 'gray.900')
   const cardBg = useColorModeValue('white', 'gray.800')
+
+  // Check for logout or session expired query params
+  const loggedOut = router.query.logout === 'true'
+  const sessionExpired = router.query.sessionExpired === 'true'
+  const callbackUrl = (router.query.callbackUrl as string) || '/'
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,7 +42,7 @@ export default function SignIn() {
       const result = await signIn('email', {
         email,
         redirect: false,
-        callbackUrl: '/',
+        callbackUrl,
       })
 
       if (result?.error) {
@@ -67,6 +74,22 @@ export default function SignIn() {
             <Box w="full" bg={cardBg} p={8} borderRadius="lg" shadow="md">
               <form onSubmit={handleSubmit}>
                 <VStack spacing={6}>
+                  {/* Logout confirmation message */}
+                  {loggedOut && (
+                    <Alert status="info" borderRadius="md">
+                      <AlertIcon />
+                      Zostałeś wylogowany.
+                    </Alert>
+                  )}
+
+                  {/* Session expired message */}
+                  {sessionExpired && (
+                    <Alert status="warning" borderRadius="md">
+                      <AlertIcon />
+                      Sesja wygasła. Zaloguj się ponownie.
+                    </Alert>
+                  )}
+
                   <FormControl isRequired>
                     <FormLabel>Adres email</FormLabel>
                     <Input

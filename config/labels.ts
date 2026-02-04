@@ -19,7 +19,23 @@ export const LABELS = {
     analytics: 'Analityka',
     settings: 'Ustawienia',
     admin: 'Administracja',
-    logout: 'Wyloguj',
+    logout: 'Wyloguj się',
+  },
+
+  // Dashboard
+  dashboard: {
+    title: 'Dashboard',
+    welcome: 'Witaj',
+    welcomeFallback: 'Inwestorze',
+    loggedInAs: 'Zalogowany jako',
+    portfolioValue: 'Wartość portfela',
+    gainLoss: 'Zysk/Strata',
+    positionsCount: 'Liczba pozycji',
+    etfsUnit: 'ETF-ów',
+    noData: 'Brak danych',
+    yourPortfolio: 'Twoje portfolio',
+    noPositions: 'Nie masz jeszcze żadnych pozycji w portfelu.',
+    noPositionsHint: 'Przejdź do sekcji Transakcje, aby dodać pierwszą transakcję.',
   },
 
   // Common actions
