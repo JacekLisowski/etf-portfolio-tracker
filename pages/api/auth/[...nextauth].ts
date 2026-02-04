@@ -2,6 +2,7 @@ import NextAuth, { type NextAuthOptions } from 'next-auth'
 import EmailProvider from 'next-auth/providers/email'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import { prisma } from '@/lib/prisma'
+import { checkMagicLinkRateLimit } from '@/lib/middleware/rateLimitMagicLink'
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -12,6 +13,12 @@ export const authOptions: NextAuthOptions = {
       maxAge: 24 * 60 * 60, // 24 hours
       // Development mode: log magic link to console instead of sending email
       async sendVerificationRequest({ identifier: email, url }) {
+        // Rate limit check - prevents spam even if check-email API is bypassed
+        const rateLimit = checkMagicLinkRateLimit(email)
+        if (!rateLimit.allowed) {
+          throw new Error('RATE_LIMITED')
+        }
+
         if (process.env.NODE_ENV === 'development') {
           console.log('\n' + '━'.repeat(80))
           console.log('🔗 MAGIC LINK (dev mode):')
