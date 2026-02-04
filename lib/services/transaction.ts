@@ -1,5 +1,5 @@
 import { prisma } from '../prisma'
-import { NotFoundError, ForbiddenError } from '../errors'
+import { NotFoundError, ForbiddenError, AppError } from '../errors'
 import { validateTransactionData, validateUpdateTransactionData } from '../validation/transaction'
 import { getOrCreatePortfolio } from './portfolio'
 import { getOrCreateEtf, getEtfById } from './etf'
@@ -34,6 +34,40 @@ export async function createTransaction(
     etf = await getOrCreateEtf(data.etf)
   } else {
     throw new NotFoundError('ETF jest wymagany')
+  }
+
+  // Validate SELL transactions - check if user has enough quantity
+  if (data.type === 'SELL') {
+    // Get all transactions for this ETF in this portfolio
+    const existingTransactions = await prisma.transaction.findMany({
+      where: {
+        portfolioId: portfolio.id,
+        etfId: etf.id,
+      },
+      orderBy: {
+        date: 'asc',
+      },
+    })
+
+    // Calculate current holdings
+    let currentQuantity = 0
+    for (const tx of existingTransactions) {
+      if (tx.type === 'BUY') {
+        currentQuantity += Number(tx.quantity)
+      } else if (tx.type === 'SELL') {
+        currentQuantity -= Number(tx.quantity)
+      }
+    }
+
+    // Check if trying to sell more than owned
+    if (data.quantity > currentQuantity) {
+      throw new AppError(
+        'INSUFFICIENT_QUANTITY',
+        `Nie możesz sprzedać ${data.quantity} jednostek. Posiadasz tylko ${currentQuantity}.`,
+        400,
+        { available: currentQuantity, requested: data.quantity }
+      )
+    }
   }
 
   // Calculate total amount
