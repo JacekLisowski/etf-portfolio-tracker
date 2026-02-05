@@ -71,15 +71,17 @@ export const authOptions: NextAuthOptions = {
         // Add user ID to session
         session.user.id = token.sub
 
-        // Fetch user from DB to get role and tier
+        // Fetch user from DB to get role, tier, name, and language
         const user = await prisma.user.findUnique({
           where: { id: token.sub },
-          select: { role: true, tier: true },
+          select: { role: true, tier: true, name: true, language: true },
         })
 
         if (user) {
           session.user.role = user.role
           session.user.tier = user.tier
+          session.user.name = user.name
+          session.user.language = user.language
         }
       }
       return session
@@ -88,6 +90,8 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = user.role
         token.tier = user.tier
+        token.name = user.name
+        token.language = user.language
       }
       return token
     },

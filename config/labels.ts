@@ -292,6 +292,15 @@ export const LABELS = {
 
   settings: {
     title: 'Ustawienia',
+    profile: 'Profil',
+    email: 'Email',
+    name: 'Imię',
+    namePlaceholder: 'Podaj swoje imię',
+    language: 'Język',
+    languagePolski: 'Polski',
+    languageEnglish: 'English',
+    saveChanges: 'Zapisz zmiany',
+    profileUpdated: 'Profil zaktualizowany',
 
     general: {
       title: 'Ustawienia ogólne',

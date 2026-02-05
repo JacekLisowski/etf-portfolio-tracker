@@ -24,6 +24,11 @@ enum SubscriptionTier {
   PREMIUM
 }
 
+enum Language {
+  PL
+  EN
+}
+
 // NextAuth Models
 model User {
   id            String    @id @default(cuid())
@@ -33,6 +38,7 @@ model User {
   image         String?
   role          Role      @default(USER)
   tier          SubscriptionTier @default(FREE)
+  language      Language  @default(PL)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

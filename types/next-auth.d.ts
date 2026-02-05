@@ -1,4 +1,4 @@
-import { Role, SubscriptionTier } from '@prisma/client'
+import { Role, SubscriptionTier, Language } from '@prisma/client'
 import 'next-auth'
 
 declare module 'next-auth' {
@@ -10,12 +10,15 @@ declare module 'next-auth' {
       image?: string | null
       role: Role
       tier: SubscriptionTier
+      language: Language
     }
   }
 
   interface User {
     role: Role
     tier: SubscriptionTier
+    name?: string | null
+    language: Language
   }
 }
 
@@ -23,5 +26,7 @@ declare module 'next-auth/jwt' {
   interface JWT {
     role?: Role
     tier?: SubscriptionTier
+    name?: string | null
+    language?: Language
   }
 }

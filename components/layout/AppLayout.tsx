@@ -22,7 +22,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { signOut } from 'next-auth/react'
 import { useAuth } from '@/hooks/useAuth'
-import { LABELS } from '@/config/labels'
+import { useLabels } from '@/contexts/LanguageContext'
 
 // ErrorBoundary component for catching React errors
 interface ErrorBoundaryProps {
@@ -86,12 +86,16 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { colorMode, toggleColorMode } = useColorMode()
   const router = useRouter()
   const { user, isAuthenticated } = useAuth()
+  const labels = useLabels()
+
+  // Display name: prefer user's name, fallback to email
+  const displayName = user?.name || user?.email || ''
 
   const navItems = [
-    { label: LABELS.nav.home, href: '/' },
-    { label: LABELS.nav.portfolio, href: '/portfolio' },
-    { label: LABELS.nav.transactions, href: '/transactions' },
-    { label: LABELS.nav.analytics, href: '/analytics' },
+    { label: labels.nav.home, href: '/' },
+    { label: labels.nav.portfolio, href: '/portfolio' },
+    { label: labels.nav.transactions, href: '/transactions' },
+    { label: labels.nav.analytics, href: '/analytics' },
   ]
 
   const isActive = (href: string) => router.pathname === href
@@ -112,7 +116,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             {/* Logo */}
             <Link href="/">
               <Heading size="md" cursor="pointer">
-                {LABELS.appName}
+                {labels.appName}
               </Heading>
             </Link>
 
@@ -149,24 +153,24 @@ export function AppLayout({ children }: AppLayoutProps) {
                     cursor="pointer"
                     minW={0}
                   >
-                    <Avatar size="sm" name={user.email || undefined} />
+                    <Avatar size="sm" name={displayName || undefined} />
                   </MenuButton>
                   <MenuList>
                     <MenuItem isDisabled>
                       <Box>
-                        <Box fontWeight="semibold">{user.email}</Box>
+                        <Box fontWeight="semibold">{displayName}</Box>
                         <Box fontSize="xs" color="gray.500">
-                          {user.tier}
+                          {user.email} - {user.tier}
                         </Box>
                       </Box>
                     </MenuItem>
                     <MenuDivider />
                     <Link href="/settings">
-                      <MenuItem>{LABELS.nav.settings}</MenuItem>
+                      <MenuItem>{labels.nav.settings}</MenuItem>
                     </Link>
                     {user.role === 'ADMIN' && (
                       <Link href="/admin">
-                        <MenuItem>{LABELS.nav.admin}</MenuItem>
+                        <MenuItem>{labels.nav.admin}</MenuItem>
                       </Link>
                     )}
                     <MenuDivider />
@@ -174,7 +178,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                       onClick={() => signOut({ callbackUrl: '/auth/signin?logout=true' })}
                       color="red.500"
                     >
-                      {LABELS.nav.logout}
+                      {labels.nav.logout}
                     </MenuItem>
                   </MenuList>
                 </Menu>
